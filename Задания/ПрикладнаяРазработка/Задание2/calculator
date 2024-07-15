@@ -1,0 +1,98 @@
+const readline = require('readline');
+
+// Настройка интерфейса для чтения и записи данных
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+// Массив для хранения истории вычислений
+let history = [];
+
+// Функции для арифметических операций
+function add(a, b) {
+    return a + b;
+}
+
+function subtract(a, b) {
+    return a - b;
+}
+
+function multiply(a, b) {
+    return a * b;
+}
+
+function divide(a, b) {
+    if (b === 0) {
+        console.log("Cannot divide by zero");
+        return null;
+    }
+    return a / b;
+}
+
+// Функция для сохранения истории
+function saveHistory(operation, a, b, result) {
+    history.push(`${a} ${operation} ${b} = ${result}`);
+}
+
+// Функция для отображения истории
+function showHistory() {
+    if (history.length === 0) {
+        console.log("No history available.");
+    } else {
+        console.log("Calculation History:");
+        history.forEach((entry, index) => {
+            console.log(`${index + 1}. ${entry}`);
+        });
+    }
+}
+
+// Основная функция для вычислений
+function calculate(operation, a, b) {
+    let result;
+    if (operation === '+') {
+        result = add(a, b);
+    } else if (operation === '-') {
+        result = subtract(a, b);
+    } else if (operation === '*') {
+        result = multiply(a, b);
+    } else if (operation === '/') {
+        result = divide(a, b);
+    } else {
+        console.log("Invalid operation");
+        return;
+    }
+    if (result !== null) {
+        console.log(`Result: ${result}`);
+        saveHistory(operation, a, b, result);
+    }
+}
+
+// Функция для запроса данных у пользователя
+function askQuestion(query, callback) {
+    rl.question(query, callback);
+}
+
+// Основная функция
+function main() {
+    askQuestion("Enter operation (+, -, *, /) or 'history' to view history or 'exit' to quit: ", function (operation) {
+        if (operation === 'exit') {
+            rl.close();
+        } else if (operation === 'history') {
+            showHistory();
+            main(); // Возвращаемся к основному циклу
+        } else {
+            askQuestion("Enter first number: ", function (a) {
+                askQuestion("Enter second number: ", function (b) {
+                    a = parseFloat(a);
+                    b = parseFloat(b);
+                    calculate(operation, a, b);
+                    main(); // Запуск основного цикла снова
+                });
+            });
+        }
+    });
+}
+
+// Запуск программы
+main();

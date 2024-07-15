@@ -1,0 +1,77 @@
+Для выполнения задания 1 использовал SQLiteStudio
+https://sqlitestudio.pl
+Скачиваем, устанавливаем, запускаем.
+В открывшейся программе нажимаем Database - Add a database, добавляем базу данных приложенную к заданию.
+В редакторе SQL запросов можно посмотреть весь код, в т.ч. создание и наполнение данными.
+
+Как альтернатива создаём новую базу данных и в SQL запросах вводим следующий код:
+
+-- Создаём таблицу владельцев
+CREATE TABLE owners(
+    owner_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT,
+    last_name TEXT,
+    birth_date DATE
+);
+
+-- Создаём таблицу машин
+CREATE TABLE cars(
+    car_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    make TEXT,
+    model TEXT,
+    year INTEGER
+);
+
+-- Создаём таблицу связи владельцев и машин
+CREATE TABLE car_ownerships(
+    ownership_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id INTEGER,
+    car_id INTEGER,
+    ownership_start_date DATE,
+    ownership_end_date DATE,
+    FOREIGN KEY (owner_id) REFERENCES owners(owner_id),
+    FOREIGN KEY (car_id) REFERENCES cars(car_id)
+);
+
+-- Помещаем внутрь таблицы владельцев информацию
+INSERT INTO owners (first_name, last_name, birth_date) VALUES
+('Алексей', 'Алексеев', '1980-09-07'),
+('Николай', 'Николаев', '1997-11-18'),
+('Павел', 'Павлов', '1989-01-28');
+
+-- Помещаем внутрь таблицы машин информацию
+INSERT INTO cars (make, model, year) VALUES
+('Reno', 'Sandero', 2012),
+('Toyota', 'Corolla', 2010),
+('Ford', 'Mustang', 2020),
+('Lada', 'Granta', 2012);
+
+-- Помещаем внутрь таблицы связей владельцев и машин информацию
+INSERT INTO car_ownerships (owner_id, car_id, ownership_start_date, ownership_end_date) VALUES
+(1,1,'2012-06-01','2017-05-31'),
+(2,2,'2015-07-21', NULL),
+(3,3,'2020-01-17', NULL),
+(1,4,'2017-06-01', NULL),
+(2,1,'2017-06-01', NULL);
+
+-- Запросы
+-- 1. Информация о владельце автомобиля на определенную дату
+SELECT owners.first_name, owners.last_name, owners.birth_date, cars.make, cars.model, cars.year
+FROM owners
+JOIN car_ownerships ON owners.owner_id=car_ownerships.owner_id
+JOIN cars ON cars.car_id=car_ownerships.car_id
+WHERE '2021-01-01' BETWEEN car_ownerships.ownership_start_date and COALESCE(car_ownerships.ownership_end_date, DATE('now'));
+
+--Все автомобили, принадлежащие и принадлежавшие конкретному владельцу
+SELECT cars.make, cars.model, cars.year
+FROM cars
+JOIN car_ownerships ON cars.car_id=car_ownerships.car_id
+JOIN owners ON owners.owner_id=car_ownerships.owner_id
+WHERE owners.first_name='Алексей' AND owners.last_name='Алексеев';
+
+--История владения конкретным автомобилем
+SELECT owners.first_name, owners.last_name, car_ownerships.ownership_start_date, car_ownerships.ownership_end_date
+FROM owners
+JOIN car_ownerships ON owners.owner_id=car_ownerships.owner_id
+JOIN cars ON cars.car_id=car_ownerships.car_id
+WHERE cars.make='Reno' AND cars.model='Sandero';
